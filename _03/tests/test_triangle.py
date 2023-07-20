@@ -1,6 +1,7 @@
 import pytest
-from _03.src.Triangle import Triangle
-from _03.src.Square import Square
+
+from _03.src.triangle import Triangle
+from _03.src.square import Square
 
 
 @pytest.mark.parametrize('side_a, side_b, side_c, perimeter, area', [

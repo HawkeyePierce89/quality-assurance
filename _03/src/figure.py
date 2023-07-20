@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class Figure(ABC):
+
     @abstractmethod
     def area(self):
         return 0
@@ -12,5 +13,5 @@ class Figure(ABC):
 
     def add_area(self, figure):
         if not isinstance(figure, Figure):
-            raise ValueError('figure must be a Figure instance')
+            raise ValueError('Figure must be an instance of Figure.')
         return self.area() + figure.area()

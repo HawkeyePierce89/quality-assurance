@@ -1,6 +1,7 @@
 import pytest
-from _03.src.Square import Square
-from _03.src.Rectangle import Rectangle
+
+from _03.src.square import Square
+from _03.src.rectangle import Rectangle
 
 
 @pytest.mark.parametrize('side_a, perimeter, area', [
@@ -14,13 +15,11 @@ def test_square_positive(side_a, perimeter, area):
     assert r.perimeter() == perimeter
 
 
-@pytest.mark.parametrize('side_a', [
-    0,
-    (-1)
-])
+@pytest.mark.parametrize('side_a', [0, -1])
 def test_square_negative(side_a):
     with pytest.raises(ValueError):
         Square(side_a)
+
 
 @pytest.mark.parametrize('side_a, figure, area', [
     (4, Rectangle(10, 25), 266),
@@ -31,9 +30,7 @@ def test_square_with_figure_positive(side_a, figure, area):
     assert r.add_area(figure) == area
 
 
-@pytest.mark.parametrize('side_a, figure', [
-    (4, False),
-])
+@pytest.mark.parametrize('side_a, figure', [(4, False)])
 def test_square_with_figure_negative(side_a, figure):
     r = Square(side_a)
     with pytest.raises(ValueError):
