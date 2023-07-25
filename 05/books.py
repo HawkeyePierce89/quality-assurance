@@ -56,6 +56,9 @@ def create_result_json():
 
         del book['Publisher']
 
+        # Приведение ключей к нижнему регистру
+        book = {k.lower(): v for k, v in book.items()}
+
         if 'books' not in users[user_idx]:
             users[user_idx]['books'] = []
 
