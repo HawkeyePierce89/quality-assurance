@@ -9,6 +9,9 @@ URL_JSON = 'https://raw.githubusercontent.com/konflic/examples/master/data/users
 RESULT_FILE_NAME = 'result.json'
 TEMP_FOLDER_NAME = 'tmp'
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMP_DIR = os.path.join(BASE_DIR, TEMP_FOLDER_NAME)
+
 
 def download_file(url, folder_name):
     file_name = url.split("/")[-1]
@@ -27,48 +30,46 @@ def download_file(url, folder_name):
     return file_path
 
 
-def delete_folder_if_exists(folder_name):
-    if os.path.exists(folder_name):
-        shutil.rmtree(folder_name)
+def delete_temp_folder():
+    if os.path.exists(TEMP_DIR):
+        shutil.rmtree(TEMP_DIR)
 
 
-delete_folder_if_exists(TEMP_FOLDER_NAME)
+def create_result_json():
+    delete_temp_folder()
 
-file_csv_path = download_file(URL_CSV, TEMP_FOLDER_NAME)
-file_json_path = download_file(URL_JSON, TEMP_FOLDER_NAME)
+    file_csv_path = download_file(URL_CSV, TEMP_DIR)
+    file_json_path = download_file(URL_JSON, TEMP_DIR)
 
-books = pandas.read_csv(file_csv_path)
-books = books.fillna("")
+    books = pandas.read_csv(file_csv_path)
+    books = books.fillna("")
 
-with open(file_json_path, 'r') as f:
-    users = json.load(f)
+    with open(file_json_path, 'r') as f:
+        users = json.load(f)
 
-num_books = len(books)
-num_users = len(users)
+    num_books = len(books)
+    num_users = len(users)
 
-for i in range(num_books):
-    user_idx = i % num_users
-    book = books.iloc[i].to_dict()
+    for i in range(num_books):
+        user_idx = i % num_users
+        book = books.iloc[i].to_dict()
 
-    del book['Publisher']
+        del book['Publisher']
 
-    if 'books' not in users[user_idx]:
-        users[user_idx]['books'] = []
+        if 'books' not in users[user_idx]:
+            users[user_idx]['books'] = []
 
-    users[user_idx]['books'].append(book)
+        users[user_idx]['books'].append(book)
 
-result = []
-for user in users:
-    result.append({
-        'name': user['name'],
-        'gender': user['gender'],
-        'address': user['address'],
-        'age': user['age'],
-        'books': user.get('books', [])
-    })
+    result = []
+    for user in users:
+        result.append({
+            'name': user['name'],
+            'gender': user['gender'],
+            'address': user['address'],
+            'age': user['age'],
+            'books': user.get('books', [])
+        })
 
-with open(TEMP_FOLDER_NAME + '/' + RESULT_FILE_NAME, 'w') as f:
-    json.dump(result, f, indent=4)
-
-os.remove(file_csv_path)
-os.remove(file_json_path)
+    with open(os.path.join(TEMP_DIR, RESULT_FILE_NAME), 'w') as f:
+        json.dump(result, f, indent=4)

@@ -2,12 +2,22 @@ import pytest
 import json
 import math
 
+from books import create_result_json, delete_temp_folder, TEMP_DIR
+
+@pytest.fixture(scope='module', autouse=True)
+def prepare_and_cleanup():
+    # This function should create result.json file
+    create_result_json()
+
+    yield  # this is where the testing happens
+
+    # after tests have run, cleanup the files
+    delete_temp_folder()
 
 def test_books_distribution():
-    TEMP_FOLDER_NAME = 'tmp'
     RESULT_FILE_NAME = 'result.json'
 
-    with open(TEMP_FOLDER_NAME + '/' + RESULT_FILE_NAME) as f:
+    with open(TEMP_DIR + '/' + RESULT_FILE_NAME) as f:
         result = json.load(f)
 
     num_users = len(result)
