@@ -4,23 +4,24 @@ import requests
 API = 'https://dog.ceo/api'
 
 
-@pytest.mark.list_breeds
-def test_list_all_breeds_api():
-    response = requests.get(API + '/breeds/list/all')
+def get_api_response(api_url):
+    response = requests.get(api_url)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
     assert "message" in data
+    return data
+
+
+@pytest.mark.list_breeds
+def test_list_all_breeds_api():
+    data = get_api_response(API + '/breeds/list/all')
     assert isinstance(data["message"], dict)
 
 
 @pytest.mark.list_breeds
 def test_list_breed_hound_api():
-    response = requests.get(API + '/breed/hound/list')
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "success"
-    assert "message" in data
+    data = get_api_response(API + '/breed/hound/list')
     assert isinstance(data["message"], list)
     assert all(isinstance(breed, str) for breed in data["message"])
 
@@ -31,11 +32,7 @@ def test_list_breed_hound_api():
     API + '/breed/hound/afghan/images'
 ])
 def test_list_images_api(api_url):
-    response = requests.get(api_url)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "success"
-    assert "message" in data
+    data = get_api_response(api_url)
     assert isinstance(data["message"], list)
     assert all(url.startswith("https://images.dog.ceo/breeds/hound") for url in data["message"])
 
@@ -47,32 +44,33 @@ def test_list_images_api(api_url):
     API + '/breed/hound/afghan/images/random'
 ])
 def test_random_image_api(api_url):
-    response = requests.get(api_url)
-    data = response.json()
-    assert response.status_code == 200
-    assert data["status"] == "success"
-    assert "message" in data
+    data = get_api_response(api_url)
     assert data["message"].startswith("https://images.dog.ceo")
 
 
-@pytest.mark.random_N_images
-@pytest.mark.parametrize('N', [-1, 0, 1, 25, 50, 51, "a", None])
+@pytest.mark.random_valid_images
+@pytest.mark.parametrize('random_number', [1, 25, 50])
 @pytest.mark.parametrize('url_pattern', [
     API + '/breeds/image/random',
     API + '/breed/hound/images/random',
     API + '/breed/hound/afghan/images/random'
 ])
-def test_random_N_images_api(N, url_pattern):
-    response = requests.get(f'{url_pattern}/{N}')
-    if isinstance(N, int) and 1 <= N <= 50:
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "success"
-        assert "message" in data
-        assert isinstance(data["message"], list)
-        assert len(data["message"]) <= N
-        assert all(url.startswith("https://images.dog.ceo") for url in data["message"])
-    else:
-        if response.status_code != 400:
-            pytest.xfail("API should return 400 for invalid values but it does not. API needs to be fixed.")
-        assert response.status_code == 400
+def test_random_valid_N_images_api(random_number, url_pattern):
+    data = get_api_response(f'{url_pattern}/{random_number}')
+    assert isinstance(data["message"], list)
+    assert len(data["message"]) <= random_number
+    assert all(url.startswith("https://images.dog.ceo") for url in data["message"])
+
+
+@pytest.mark.random_invalid_images
+@pytest.mark.parametrize('random_number', [-1, 0, 51, "a", None])
+@pytest.mark.parametrize('url_pattern', [
+    API + '/breeds/image/random',
+    API + '/breed/hound/images/random',
+    API + '/breed/hound/afghan/images/random'
+])
+def test_random_invalid_N_images_api(random_number, url_pattern):
+    response = requests.get(f'{url_pattern}/{random_number}')
+    if response.status_code != 400:
+        pytest.xfail("API should return 400 for invalid values but it does not. API needs to be fixed.")
+    assert response.status_code == 400
